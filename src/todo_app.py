@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Todo Console Application - Phase I Implementation
+Interactive Todo Console Application - Phase I Implementation
 Basic Level Features: Add, Delete, Update, View, Mark Complete (Toggle)
-In-Memory Storage Only
+Interactive CLI with arrow key navigation
 """
 
-import argparse
 import json
 import sys
 from datetime import datetime
 from typing import Dict, List, Optional
+import inquirer
 
 
 class Task:
@@ -60,6 +60,11 @@ class Task:
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }
+
+    def __str__(self):
+        """String representation for display."""
+        status = "✓" if self.completed else "○"
+        return f"[{status}] {self.id}: {self.title}"
 
 
 class InMemoryRepository:
@@ -189,132 +194,184 @@ class TodoService:
             }
 
 
-class TodoCLI:
-    """Command-line interface for the todo application."""
+class InteractiveTodoCLI:
+    """Interactive command-line interface for the todo application."""
 
     def __init__(self):
         self.repo = InMemoryRepository()
         self.service = TodoService(self.repo)
-        self.parser = self._create_parser()
 
-    def _create_parser(self) -> argparse.ArgumentParser:
-        """Create the argument parser with all commands."""
-        parser = argparse.ArgumentParser(
-            description="Todo Console Application - Phase I",
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            epilog="""
-Examples:
-  add "Buy groceries" --desc "Milk, eggs, bread"
-  list
-  update 1 --title "Buy weekly groceries" --desc "Milk, eggs, bread, fruits"
-  delete 1
-  toggle 1
-            """
-        )
-
-        subparsers = parser.add_subparsers(dest='command', help='Available commands')
-
-        # Add command
-        add_parser = subparsers.add_parser('add', help='Add a new task')
-        add_parser.add_argument('title', help='Task title (1-200 characters)')
-        add_parser.add_argument('--desc', '--description', dest='description', default='',
-                               help='Task description (optional, max 1000 characters)')
-
-        # List command
-        list_parser = subparsers.add_parser('list', help='List all tasks')
-
-        # Update command
-        update_parser = subparsers.add_parser('update', help='Update a task')
-        update_parser.add_argument('id', type=int, help='Task ID to update')
-        update_parser.add_argument('--title', help='New title (1-200 characters)')
-        update_parser.add_argument('--desc', '--description', dest='description',
-                                   help='New description (max 1000 characters)')
-
-        # Delete command
-        delete_parser = subparsers.add_parser('delete', help='Delete a task')
-        delete_parser.add_argument('id', type=int, help='Task ID to delete')
-
-        # Toggle command
-        toggle_parser = subparsers.add_parser('toggle', help='Toggle task completion status')
-        toggle_parser.add_argument('id', type=int, help='Task ID to toggle')
-
-        return parser
-
-    def run(self, args=None):
-        """Run the CLI application."""
-        if args is None:
-            args = sys.argv[1:]
-
-        if not args:
-            self.parser.print_help()
-            return 0
-
-        parsed_args = self.parser.parse_args(args)
-
-        if parsed_args.command == 'add':
-            result = self.service.add_task(parsed_args.title, parsed_args.description)
-        elif parsed_args.command == 'list':
-            result = self.service.list_tasks()
-        elif parsed_args.command == 'update':
-            result = self.service.update_task(
-                parsed_args.id,
-                parsed_args.title,
-                parsed_args.description
-            )
-        elif parsed_args.command == 'delete':
-            result = self.service.delete_task(parsed_args.id)
-        elif parsed_args.command == 'toggle':
-            result = self.service.toggle_task(parsed_args.id)
-        else:
-            self.parser.print_help()
-            return 0
-
-        if result['success']:
-            if 'task' in result:
-                self._print_task(result['task'])
-            elif 'tasks' in result:
-                self._print_tasks(result['tasks'])
-            elif 'message' in result:
-                print(result['message'])
-            return 0
-        else:
-            print(f"Error: {result['error']}", file=sys.stderr)
-            return 1
-
-    def _print_task(self, task: Dict):
-        """Print a single task in a formatted way."""
-        status = "X" if task['completed'] else "O"
-        print(f"[{status}] ID: {task['id']}")
-        print(f"    Title: {task['title']}")
-        if task['description']:
-            print(f"    Desc:  {task['description']}")
-        print(f"    Created: {task['created_at']}")
-        print(f"    Updated: {task['updated_at']}")
-        print()
-
-    def _print_tasks(self, tasks: List[Dict]):
-        """Print all tasks in a formatted list."""
+    def display_tasks(self):
+        """Display all tasks in a formatted way."""
+        tasks = self.repo.get_all_tasks()
         if not tasks:
-            print("No tasks found.")
+            print("\nNo tasks found.")
             return
 
-        # Print header
-        print(f"{'ID':<4} {'Status':<8} {'Title':<30} {'Description'}")
-        print("-" * 80)
-
-        # Print each task
+        print("\n" + "="*60)
+        print("YOUR TODO LIST")
+        print("="*60)
         for task in tasks:
-            status = "X" if task['completed'] else "O"
-            title = task['title'][:28] + ".." if len(task['title']) > 30 else task['title']
-            desc = task['description'][:30] + ".." if len(task['description']) > 30 else task['description']
-            print(f"{task['id']:<4} {status:<8} {title:<30} {desc}")
+            status = "✓" if task.completed else "○"
+            print(f"[{status}] ID: {task.id}")
+            print(f"    Title: {task.title}")
+            if task.description:
+                print(f"    Desc:  {task.description}")
+            print(f"    Created: {task.created_at[:19]}")
+            print(f"    Updated: {task.updated_at[:19]}")
+            print("-" * 40)
+        print("="*60)
+
+    def add_task_interactive(self):
+        """Interactive task addition."""
+        print("\n--- ADD NEW TASK ---")
+        title = input("Enter task title (1-200 characters): ").strip()
+        if not title:
+            print("Error: Title is required")
+            return
+
+        description = input("Enter task description (optional, max 1000 characters): ").strip()
+
+        result = self.service.add_task(title, description)
+        if result['success']:
+            print(f"✓ {result['message']}")
+        else:
+            print(f"✗ Error: {result['error']}")
+
+    def select_task(self, action: str) -> Optional[Task]:
+        """Interactive task selection using inquirer."""
+        tasks = self.repo.get_all_tasks()
+        if not tasks:
+            print("\nNo tasks available.")
+            return None
+
+        task_choices = [f"{task.id}: {task.title} [{'✓' if task.completed else '○'}]" for task in tasks]
+        task_choices.append("Cancel")
+
+        questions = [
+            inquirer.List('task',
+                         message=f"Select task to {action}",
+                         choices=task_choices,
+                         carousel=True)
+        ]
+
+        answers = inquirer.prompt(questions)
+        if not answers or answers['task'] == "Cancel":
+            return None
+
+        # Extract task ID from the selection
+        selected_id = int(answers['task'].split(':')[0])
+        return self.repo.get_task(selected_id)
+
+    def update_task_interactive(self):
+        """Interactive task update."""
+        print("\n--- UPDATE TASK ---")
+        task = self.select_task("update")
+        if not task:
+            return
+
+        print(f"Current task: {task.title}")
+        if task.description:
+            print(f"Current description: {task.description}")
+
+        new_title = input(f"Enter new title (or press Enter to keep '{task.title}'): ").strip()
+        new_title = new_title if new_title else None
+
+        new_desc = input(f"Enter new description (or press Enter to keep current): ").strip()
+        new_desc = new_desc if new_desc else None
+
+        result = self.service.update_task(task.id, new_title, new_desc)
+        if result['success']:
+            print(f"✓ {result['message']}")
+        else:
+            print(f"✗ Error: {result['error']}")
+
+    def delete_task_interactive(self):
+        """Interactive task deletion."""
+        print("\n--- DELETE TASK ---")
+        task = self.select_task("delete")
+        if not task:
+            return
+
+        confirm = input(f"Are you sure you want to delete task '{task.title}'? (y/N): ").lower()
+        if confirm == 'y':
+            result = self.service.delete_task(task.id)
+            if result['success']:
+                print(f"✓ {result['message']}")
+            else:
+                print(f"✗ Error: {result['error']}")
+        else:
+            print("Deletion cancelled.")
+
+    def toggle_task_interactive(self):
+        """Interactive task completion toggle."""
+        print("\n--- TOGGLE TASK COMPLETION ---")
+        task = self.select_task("toggle")
+        if not task:
+            return
+
+        result = self.service.toggle_task(task.id)
+        if result['success']:
+            status = "completed" if result['task']['completed'] else "pending"
+            print(f"✓ Task {task.id} marked as {status}")
+        else:
+            print(f"✗ Error: {result['error']}")
+
+    def run(self):
+        """Run the interactive CLI application."""
+        print("Welcome to the Interactive Todo App!")
+        print("Use arrow keys to navigate menus.")
+
+        while True:
+            print("\n" + "="*50)
+            print("TODO APP - MAIN MENU")
+            print("="*50)
+
+            choices = [
+                "View All Tasks",
+                "Add New Task",
+                "Update Task",
+                "Delete Task",
+                "Toggle Task Completion",
+                "Exit"
+            ]
+
+            questions = [
+                inquirer.List('action',
+                             message="Select an action",
+                             choices=choices,
+                             carousel=True)
+            ]
+
+            answers = inquirer.prompt(questions)
+
+            if not answers:
+                break
+
+            action = answers['action']
+
+            if action == "View All Tasks":
+                self.display_tasks()
+            elif action == "Add New Task":
+                self.add_task_interactive()
+            elif action == "Update Task":
+                self.update_task_interactive()
+            elif action == "Delete Task":
+                self.delete_task_interactive()
+            elif action == "Toggle Task Completion":
+                self.toggle_task_interactive()
+            elif action == "Exit":
+                print("Thank you for using the Todo App!")
+                break
+
+            # Wait for user to see the result before showing menu again
+            input("\nPress Enter to continue...")
 
 
 def main():
     """Main entry point."""
-    cli = TodoCLI()
-    exit_code = cli.run()
-    sys.exit(exit_code)
+    cli = InteractiveTodoCLI()
+    cli.run()
 
 
 if __name__ == "__main__":
