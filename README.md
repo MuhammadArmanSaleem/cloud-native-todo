@@ -20,77 +20,91 @@ This is Phase I of "The Evolution of Todo" hackathon project - an in-memory Pyth
 
 ## Prerequisites
 - Python 3.13 or higher
-- UV package manager
+- UV package manager (recommended) or pip
 
 ## Setup Instructions
 
-1. Clone the repository:
+### Step 1: Install UV (if not already installed)
+
+**Windows (PowerShell):**
+```powershell
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**macOS/Linux:**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+**Note:** After installation, restart your terminal or add UV to your PATH:
+- Windows: `C:\Users\<YourUsername>\.local\bin`
+- macOS/Linux: `~/.local/bin`
+
+### Step 2: Clone the repository (if needed)
 ```bash
 git clone <your-repo-url>
 cd hack-2
 ```
 
-2. Install dependencies using UV:
-```bash
+### Step 3: Create virtual environment and install dependencies
+
+**Using UV (Recommended):**
+```powershell
+# Windows PowerShell
 uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-uv pip install .
+.venv\Scripts\activate
+uv sync
 ```
 
-Alternatively, if you don't have UV, you can use pip:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# macOS/Linux
+uv venv
+source .venv/bin/activate
+uv sync
+```
+
+**Alternative: Using pip**
+```powershell
+# Windows PowerShell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+```bash
+# macOS/Linux
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-### Command Line Interface
-The application provides a command-line interface with the following commands:
+### Interactive Mode (Default)
+The application runs in interactive mode with a menu-driven interface:
 
-#### Add a Task
-```bash
-python src/todo_app.py add "Task Title" --desc "Task Description"
+```powershell
+# Windows
+python src/todo_app.py
 ```
 
-#### List All Tasks
 ```bash
-python src/todo_app.py list
+# macOS/Linux
+python src/todo_app.py
 ```
 
-#### Update a Task
-```bash
-python src/todo_app.py update 1 --title "New Title" --desc "New Description"
-```
+**Navigation:**
+- Use **↑/↓ arrow keys** to navigate menu options
+- Press **Enter** to select
+- Follow on-screen prompts to add, view, update, delete, or toggle tasks
 
-#### Delete a Task
-```bash
-python src/todo_app.py delete 1
-```
-
-#### Toggle Task Completion
-```bash
-python src/todo_app.py toggle 1
-```
-
-### Examples
-```bash
-# Add a task
-python src/todo_app.py add "Buy groceries" --desc "Milk, eggs, bread"
-
-# List all tasks
-python src/todo_app.py list
-
-# Update a task
-python src/todo_app.py update 1 --title "Buy weekly groceries"
-
-# Mark task as complete
-python src/todo_app.py toggle 1
-
-# Delete a task
-python src/todo_app.py delete 1
-```
+**Main Menu Options:**
+1. **View All Tasks** - Display all tasks with their status
+2. **Add New Task** - Create a new todo item
+3. **Update Task** - Modify an existing task
+4. **Delete Task** - Remove a task from the list
+5. **Toggle Task Completion** - Mark task as complete/incomplete
+6. **Exit** - Quit the application
 
 ## Data Model
 Each task contains:
