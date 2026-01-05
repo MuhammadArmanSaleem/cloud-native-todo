@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir)",
+      "Bash(dir /s)",
+      "Bash(dir /s /b)",
+      "Bash(powershell \"Get-ChildItem -Recurse\")",
+      "Bash(dir phase-1 /s)",
+      "Bash(powershell \"Get-ChildItem -Path .\\\\phase-1 -Recurse\")",
+      "Bash(powershell \"Get-ChildItem -Path .\\\\phase-2 -Recurse\")",
+      "Skill(task-triage-orchestrator)",
+      "Skill(database-sdd-orchestrator)",
+      "Skill(backend-sdd-orchestrator)",
+      "Skill(frontend-sdd-orchestrator)",
+      "Bash(del \"C:\\\\Users\\\\Arman Saleem\\\\Desktop\\\\Codes\\\\cloud-native-todo\\\\phase-2\\\\frontend\\\\next.config.ts\")"
+    ]
+  }
+}
