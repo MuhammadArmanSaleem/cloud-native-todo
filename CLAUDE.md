@@ -208,3 +208,166 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Available Skills
+
+The following skills are available in `.claude/skills/` and should be automatically activated based on user requests. Skills provide specialized workflows, patterns, and domain expertise.
+
+### Task Triage Orchestrator (`task-triage-orchestrator`)
+
+**Purpose**: Analyzes complex, multi-part goals, breaks them into logical chunks, researches with Context7, and delegates to specialized skills.
+
+**When to Use**:
+- User provides high-level goals requiring multiple components (frontend, backend, database, integrations)
+- Complex projects that need systematic breakdown and orchestration
+- Multi-part features that span multiple layers
+
+**What It Does**:
+- Analyzes complex goals extensively
+- Breaks goals into logical, delegatable chunks
+- Researches each chunk using Context7 for latest patterns
+- Routes chunks to appropriate specialized skills
+- Provides rich context to delegated skills
+- Coordinates execution order and dependencies
+- Tracks overall progress across all chunks
+
+**Location**: `.claude/skills/task-triage-orchestrator/`
+
+### Frontend SDD Orchestrator (`frontend-sdd-orchestrator`)
+
+**Purpose**: Orchestrates complete frontend development using SpecKit Plus workflow (constitution → spec → plan → tasks → implement) with Next.js frontend skill.
+
+**When to Use**:
+- Building complete frontend applications
+- Creating full UI implementations
+- Developing frontend features end-to-end with spec-driven development
+
+**What It Does**:
+- Orchestrates full SpecKit Plus workflow for frontend development
+- Runs constitution → spec → plan → tasks → implement phases automatically
+- Delegates implementation to `nextjs-frontend` skill
+- Handles edge cases (empty states, loading, errors, validation)
+- Uses Context7 for latest Next.js documentation
+- Ensures complete SDD process with all artifacts created
+
+**Location**: `.claude/skills/frontend-sdd-orchestrator/`
+
+### Backend SDD Orchestrator (`backend-sdd-orchestrator`)
+
+**Purpose**: Orchestrates complete backend development using SpecKit Plus workflow (constitution → spec → plan → tasks → implement) with FastAPI backend skill.
+
+**When to Use**:
+- Building complete backend APIs
+- Creating full server implementations
+- Developing backend features end-to-end with spec-driven development
+
+**What It Does**:
+- Orchestrates full SpecKit Plus workflow for backend development
+- Runs constitution → spec → plan → tasks → implement phases automatically
+- Delegates implementation to `fastapi-backend` skill
+- Handles edge cases (validation, authentication, database errors, security)
+- Uses Context7 for latest FastAPI documentation
+- Ensures complete SDD process with all artifacts created
+
+**Location**: `.claude/skills/backend-sdd-orchestrator/`
+
+### Database SDD Orchestrator (`database-sdd-orchestrator`)
+
+**Purpose**: Orchestrates complete database development using SpecKit Plus workflow (constitution → spec → plan → tasks → implement) with PostgreSQL database skill.
+
+**When to Use**:
+- Designing complete database schemas
+- Creating full database implementations
+- Developing database features end-to-end with spec-driven development
+
+**What It Does**:
+- Orchestrates full SpecKit Plus workflow for database development
+- Runs constitution → spec → plan → tasks → implement phases automatically
+- Delegates implementation to `postgresql-database` skill
+- Handles edge cases (data integrity, migrations, security, performance)
+- Uses Context7 for latest PostgreSQL documentation
+- Ensures complete SDD process with all artifacts created
+
+**Location**: `.claude/skills/database-sdd-orchestrator/`
+
+### Domain Skills
+
+These skills are used by the orchestrators for implementation:
+
+#### Next.js Frontend (`nextjs-frontend`)
+- **Purpose**: Next.js frontend development with minimalist techy design
+- **Features**: Component patterns, props and maps, data handling, form validation, RBAC
+- **Location**: `.claude/skills/nextjs-frontend/`
+
+#### FastAPI Backend (`fastapi-backend`)
+- **Purpose**: FastAPI backend development with security and validation
+- **Features**: Routing, dependency injection, authentication, RBAC, input sanitization
+- **Location**: `.claude/skills/fastapi-backend/`
+
+#### PostgreSQL Database (`postgresql-database`)
+- **Purpose**: PostgreSQL database design with modern security practices
+- **Features**: Schema design, password hashing (Argon2, bcrypt, scrypt), migrations, performance
+- **Location**: `.claude/skills/postgresql-database/`
+
+### Workflow Guardrail (`workflow-guardrail`)
+
+**Purpose**: Validates and enforces proper workflow execution, ensures Context7 usage, and verifies skill compliance.
+
+**When to Use**:
+- Before executing any task (automatic validation)
+- When workflow violations are detected
+- When shortcuts are attempted
+- When Context7 usage is missing
+
+**What It Does**:
+- Intercepts requests before execution
+- Validates workflow compliance (SpecKit Plus, chunking, skill usage)
+- Ensures Context7 is used for all skills
+- Validates skill behavior matches documentation
+- Blocks shortcuts and guides corrections
+- Acts as quality gate for all executions
+
+**Location**: `.claude/skills/workflow-guardrail/`
+
+## Skill Activation
+
+**Automatic Activation**: Skills activate automatically based on user prompts matching their descriptions. No explicit mention required.
+
+**Verification**: When a skill is active, you should:
+1. Explicitly mention which skill you're using
+2. Follow the skill's documented workflow
+3. Reference skill patterns and references
+4. Show structured approach matching skill's phases
+
+**Example Activation**:
+- User: "Build a todo app with voice automation"
+- AI should: Activate `task-triage-orchestrator` → Break into chunks → Delegate to appropriate orchestrators
+
+## Skill Usage Guidelines
+
+1. **Match Skills to Tasks**: Use the most appropriate skill for each task type
+2. **Follow Skill Workflows**: Execute tasks following the skill's documented workflow
+3. **Use Skill References**: Consult skill reference files for patterns and best practices
+4. **Coordinate Multi-Skill Tasks**: Use `task-triage-orchestrator` for complex, multi-part goals
+5. **Provide Context**: When delegating, provide rich context including Context7 findings
+6. **Track Progress**: Monitor execution across all chunks and skills
+7. **Validate with Guardrail**: `workflow-guardrail` automatically validates all executions - ensure compliance
+
+## Workflow Guardrail Enforcement
+
+The `workflow-guardrail` skill automatically validates all task executions. **You MUST**:
+
+1. **Check Workflow Before Execution**: Validate proper skill usage and workflow compliance
+2. **Ensure Context7 Usage**: All skills must query Context7 for latest documentation
+3. **Follow SpecKit Plus**: Complex tasks must follow full SpecKit Plus workflow
+4. **No Shortcuts**: Block direct implementation without proper planning
+5. **Validate Skill Behavior**: Ensure skills follow their documented workflows
+
+**Guardrail Will Block**:
+- Direct implementation without planning
+- Missing SpecKit Plus phases
+- Missing Context7 queries
+- Wrong skill usage
+- Skipped chunking for complex tasks
+
+**If Blocked**: Follow guardrail guidance to correct workflow and retry.

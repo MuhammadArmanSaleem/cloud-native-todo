@@ -1,0 +1,27 @@
+name: hackathon-todo
+version: "2.0"
+structure:
+  specs_dir: phase-2/specs
+  features_dir: phase-2/specs/features
+  api_dir: phase-2/specs/api
+  database_dir: phase-2/specs/database
+  ui_dir: phase-2/specs/ui
+
+phases:
+  - name: phase1-console
+    features: [task-crud]
+  
+  - name: phase2-web
+    features:
+      - task-crud
+      - authentication
+      - priorities-tags
+      - search-filter
+      - sort-tasks
+      - recurring-tasks
+      - due-dates-reminders
+      - reusable-intelligence
+      - cloud-native-blueprints
+      - multi-language
+      - voice-commands
+
