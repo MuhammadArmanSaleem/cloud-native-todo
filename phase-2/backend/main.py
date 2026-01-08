@@ -5,23 +5,20 @@ from typing import Optional, List, AsyncGenerator
 import os
 from sqlmodel import SQLModel, Field, select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy.ext.asyncio import create_async_engine
 from datetime import datetime
 from pydantic import BaseModel
 import better_exceptions
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from .env.local (or .env as fallback)
+load_dotenv(".env.local")  # Try .env.local first
+load_dotenv()  # Fallback to .env if .env.local doesn't exist
 
 # Enable better exceptions for debugging
 better_exceptions.hook()
 
-# Database setup
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://localhost:5432/todo")
-
-# Create async engine
-async_engine = create_async_engine(DATABASE_URL)
+# Database setup - import from database.py
+from database import async_engine
 
 # Pydantic models for request/response validation
 class TaskBase(BaseModel):

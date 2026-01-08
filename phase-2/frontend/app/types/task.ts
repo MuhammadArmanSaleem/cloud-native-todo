@@ -1,4 +1,7 @@
 // TypeScript interfaces for Task data
+import { Comment } from './comment';
+import { Attachment } from './attachment';
+
 export interface Task {
   id: number;
   user_id: string;
@@ -14,6 +17,18 @@ export interface Task {
   original_task_id: number | null;
   created_at: string;
   updated_at: string;
+  history?: TaskHistoryEntry[];
+  comments?: Comment[];
+  attachments?: Attachment[];
+}
+
+export interface TaskHistoryEntry {
+  id: string;
+  change_type: 'created' | 'completed' | 'edited' | 'priority_updated' | 'due_date_set' | 'due_date_updated' | 'status_changed';
+  timestamp: string;
+  user_id: string;
+  user_name?: string;
+  details?: string; // Optional additional details (e.g., "Priority changed from low to high")
 }
 
 export interface TaskCreate {
@@ -38,4 +53,3 @@ export interface TaskFilters {
   sort?: 'created_at' | 'due_date' | 'priority' | 'title';
   order?: 'asc' | 'desc';
 }
-

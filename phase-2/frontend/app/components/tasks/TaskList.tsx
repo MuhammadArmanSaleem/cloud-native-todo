@@ -1,42 +1,59 @@
-// TaskList component using maps for data rendering - following nextjs-frontend skill patterns
-import { Task } from '@/app/types/task';
-import TaskItem from './TaskItem';
+"use client";
+
+import { Task } from "../../types/task";
+import TaskCard from "./TaskCard";
+import TaskListSkeleton from "./TaskListSkeleton";
+import TaskListEmpty from "./TaskListEmpty";
+
+export type TaskFilter = "all" | "completed" | "pending";
 
 interface TaskListProps {
   tasks: Task[];
+  filter?: TaskFilter;
+  isLoading?: boolean;
   onToggleComplete: (id: number) => void;
-  onEdit: (task: Task) => void;
-  onDelete: (id: number) => void;
-  emptyMessage?: string;
+  onDelete?: (id: number) => void;
+  currentUserId?: string;
 }
 
 export default function TaskList({
   tasks,
+  filter = "all",
+  isLoading = false,
   onToggleComplete,
-  onEdit,
   onDelete,
-  emptyMessage = 'No tasks found'
+  currentUserId,
 }: TaskListProps) {
-  if (tasks.length === 0) {
-    return (
-      <div className="p-12 text-center">
-        <p className="text-gray-500 text-lg">{emptyMessage}</p>
-      </div>
-    );
+  // Loading State
+  if (isLoading) {
+    return <TaskListSkeleton />;
   }
 
+  // Filter tasks based on completion status
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "all") return true;
+    if (filter === "completed") return task.completed;
+    if (filter === "pending") return !task.completed;
+    return true;
+  });
+
+  // Empty State
+  if (filteredTasks.length === 0) {
+    return <TaskListEmpty filter={filter} />;
+  }
+
+  // Render Task List
   return (
-    <ul className="divide-y divide-gray-200">
-      {tasks.map((task) => (
-        <TaskItem
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {filteredTasks.map((task) => (
+        <TaskCard
           key={task.id}
           task={task}
           onToggleComplete={onToggleComplete}
-          onEdit={onEdit}
           onDelete={onDelete}
+          currentUserId={currentUserId}
         />
       ))}
-    </ul>
+    </div>
   );
 }
-

@@ -1,229 +1,266 @@
-// TaskForm component with validation - following nextjs-frontend skill patterns
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { TaskCreate, Task } from '@/app/types/task';
-import { validateTask, sanitizeString, ValidationErrors } from '@/app/lib/validation';
-import Input from '../ui/Input';
-import Button from '../ui/Button';
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Task } from "../../types/task";
+import { taskFormSchema, TaskFormValues } from "../../lib/validators/taskSchema";
+import { useState } from "react";
+import DueDatePicker from "../task/DueDatePicker";
+import RecurringTaskSelector from "../task/RecurringTaskSelector";
 
 interface TaskFormProps {
   task?: Task | null;
-  onSubmit: (data: TaskCreate) => Promise<void>;
+  onSubmit: (values: TaskFormValues) => void | Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
 
-export default function TaskForm({ task, onSubmit, onCancel, isSubmitting = false }: TaskFormProps) {
-  const [formData, setFormData] = useState<TaskCreate>({
-    title: task?.title || '',
-    description: task?.description || '',
-    priority: task?.priority || 'medium',
+export default function TaskForm({
+  task,
+  onSubmit,
+  onCancel,
+  isSubmitting = false,
+}: TaskFormProps) {
+  const { language } = useLanguage();
+  const t = uiCopy[language];
+  const [tagInput, setTagInput] = useState("");
+
+  // Initial values for Formik - convert date to string format for HTML input
+  const getInitialDueDate = (): string | null => {
+    if (!task?.due_date) return null;
+    const date = new Date(task.due_date);
+    if (isNaN(date.getTime())) return null;
+    return date.toISOString().split("T")[0];
+  };
+
+  // Get initial recurring pattern
+  const getInitialRecurringPattern = () => {
+    if (!task?.recurring_pattern) return null;
+    // If it's a string, return as is
+    if (typeof task.recurring_pattern === "string") {
+      return task.recurring_pattern;
+    }
+    // If it's an object, return as is
+    if (typeof task.recurring_pattern === "object") {
+      return task.recurring_pattern;
+    }
+    return null;
+  };
+
+  const initialValues: TaskFormValues = {
+    title: task?.title || "",
+    description: task?.description || null,
+    priority: task?.priority || null,
     tags: task?.tags || [],
-    due_date: task?.due_date ? task.due_date.split('T')[0] : '',
-    reminder_time: task?.reminder_time ? task.reminder_time.split('T')[0] + 'T' + task.reminder_time.split('T')[1] : '',
-    recurring_pattern: task?.recurring_pattern || undefined,
-  });
-
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const [tagInput, setTagInput] = useState('');
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    
-    // Sanitize input on change
-    const sanitized = name === 'title' || name === 'description' 
-      ? sanitizeString(value)
-      : value;
-    
-    setFormData(prev => ({ ...prev, [name]: sanitized }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
+    due_date: getInitialDueDate(),
+    recurring_pattern: getInitialRecurringPattern(),
   };
 
-  const handleAddTag = () => {
+  const handleAddTag = (
+    currentTags: string[],
+    setFieldValue: (field: string, value: any) => void
+  ) => {
     if (!tagInput.trim()) return;
-    const sanitized = sanitizeString(tagInput.trim());
-    if (sanitized && !formData.tags?.includes(sanitized)) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...(prev.tags || []), sanitized]
-      }));
-      setTagInput('');
+    const trimmedTag = tagInput.trim();
+    if (!currentTags.includes(trimmedTag)) {
+      setFieldValue("tags", [...currentTags, trimmedTag]);
+      setTagInput("");
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags?.filter(tag => tag !== tagToRemove) || []
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate before API call
-    const validationErrors = validateTask(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return; // Stop - don't call API
-    }
-
-    // All validation passed - call API
-    await onSubmit(formData);
+  const handleRemoveTag = (
+    tagToRemove: string,
+    currentTags: string[],
+    setFieldValue: (field: string, value: any) => void
+  ) => {
+    setFieldValue(
+      "tags",
+      currentTags.filter((tag) => tag !== tagToRemove)
+    );
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        label="Title *"
-        name="title"
-        value={formData.title}
-        onChange={handleChange}
-        error={errors.title}
-        required
-        maxLength={200}
-      />
+    <Formik
+      initialValues={initialValues}
+      validationSchema={taskFormSchema}
+      onSubmit={async (values, { setSubmitting }) => {
+        await onSubmit(values);
+        setSubmitting(false);
+      }}
+    >
+      {({ values, setFieldValue, isSubmitting: formikSubmitting }) => {
+        const submitting = isSubmitting || formikSubmitting;
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1.5">
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          value={formData.description || ''}
-          onChange={handleChange}
-          rows={3}
-          maxLength={1000}
-          className={`
-            w-full px-3 py-2 border rounded-md
-            text-gray-900 placeholder-gray-400
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-            ${errors.description ? 'border-red-300' : 'border-gray-300'}
-          `}
-        />
-        {errors.description && (
-          <p className="mt-1.5 text-sm text-red-600">{errors.description}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1.5">
-          Priority
-        </label>
-        <select
-          id="priority"
-          name="priority"
-          value={formData.priority || 'medium'}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1.5">
-          Tags
-        </label>
-        <div className="flex gap-2 mb-2">
-          <input
-            type="text"
-            id="tags"
-            value={tagInput}
-            onChange={(e) => setTagInput(sanitizeString(e.target.value))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddTag();
-              }
-            }}
-            placeholder="Add a tag and press Enter"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <Button type="button" variant="secondary" onClick={handleAddTag}>
-            Add
-          </Button>
-        </div>
-        {formData.tags && formData.tags.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            {formData.tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded"
+        return (
+          <Form className="space-y-4">
+            {/* Title Field */}
+            <div>
+              <label
+                htmlFor="title"
+                className="block text-sm font-medium text-foreground mb-1.5"
               >
-                {tag}
+                {t.taskForm.titleLabel} <span className="text-destructive">*</span>
+              </label>
+              <Field
+                type="text"
+                id="title"
+                name="title"
+                maxLength={200}
+                className="w-full px-4 py-2 bg-card border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+                placeholder={t.taskForm.titlePlaceholder}
+              />
+              <ErrorMessage
+                name="title"
+                component="p"
+                className="mt-1.5 text-sm text-destructive"
+              />
+            </div>
+
+            {/* Description Field */}
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-foreground mb-1.5"
+              >
+                {t.taskForm.descriptionLabel}
+              </label>
+              <Field
+                as="textarea"
+                id="description"
+                name="description"
+                rows={4}
+                maxLength={1000}
+                className="w-full px-4 py-2 bg-card border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background resize-y"
+                placeholder={t.taskForm.descriptionPlaceholder}
+              />
+              <div className="flex justify-between items-center mt-1">
+                <ErrorMessage
+                  name="description"
+                  component="p"
+                  className="text-sm text-destructive"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {(values.description?.length || 0)} / 1000
+                </span>
+              </div>
+            </div>
+
+            {/* Priority Field */}
+            <div>
+              <label
+                htmlFor="priority"
+                className="block text-sm font-medium text-foreground mb-1.5"
+              >
+                {t.taskForm.priorityLabel}
+              </label>
+              <Field
+                as="select"
+                id="priority"
+                name="priority"
+                className="w-full px-4 py-2 bg-card border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+              >
+                <option value="">{t.taskForm.priorityNone}</option>
+                <option value="low">{t.taskForm.priorityLow}</option>
+                <option value="medium">{t.taskForm.priorityMedium}</option>
+                <option value="high">{t.taskForm.priorityHigh}</option>
+              </Field>
+              <ErrorMessage
+                name="priority"
+                component="p"
+                className="mt-1.5 text-sm text-destructive"
+              />
+            </div>
+
+            {/* Tags Field */}
+            <div>
+              <label
+                htmlFor="tags"
+                className="block text-sm font-medium text-foreground mb-1.5"
+              >
+                Tags
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  id="tags"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddTag(values.tags || [], setFieldValue);
+                    }
+                  }}
+                  placeholder={t.taskForm.addTagPlaceholder}
+                  className="flex-1 px-4 py-2 bg-card border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+                />
                 <button
                   type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  className="text-gray-500 hover:text-gray-700"
-                  aria-label={`Remove tag ${tag}`}
+                  onClick={() => handleAddTag(values.tags || [], setFieldValue)}
+                  className="px-4 py-2 bg-muted text-muted-foreground rounded-md hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-colors"
                 >
-                  ×
+                  Add
                 </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
+              </div>
+              {values.tags && values.tags.length > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                  {values.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-muted text-muted-foreground text-sm rounded"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleRemoveTag(tag, values.tags || [], setFieldValue)
+                        }
+                        className="text-muted-foreground hover:text-foreground focus:outline-none"
+                        aria-label={`Remove tag ${tag}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <ErrorMessage
+                name="tags"
+                component="p"
+                className="mt-1.5 text-sm text-destructive"
+              />
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          label="Due Date"
-          name="due_date"
-          type="date"
-          value={formData.due_date || ''}
-          onChange={handleChange}
-          error={errors.due_date}
-        />
-        <Input
-          label="Reminder Time"
-          name="reminder_time"
-          type="datetime-local"
-          value={formData.reminder_time || ''}
-          onChange={handleChange}
-          error={errors.reminder_time}
-        />
-      </div>
+            {/* Due Date Field */}
+            <DueDatePicker name="due_date" label={t.taskForm.dueDateLabel} />
 
-      <div>
-        <label htmlFor="recurring_pattern" className="block text-sm font-medium text-gray-700 mb-1.5">
-          Recurring Pattern
-        </label>
-        <select
-          id="recurring_pattern"
-          name="recurring_pattern"
-          value={formData.recurring_pattern || ''}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">None</option>
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-        </select>
-      </div>
+            {/* Recurring Pattern Field */}
+            <RecurringTaskSelector name="recurring_pattern" label={t.taskForm.recurringPatternLabel} />
 
-      <div className="flex gap-2 justify-end">
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
-        </Button>
-      </div>
-    </form>
+            {/* Form Actions */}
+            <div className="flex gap-2 justify-end pt-4">
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={submitting}
+                className="px-4 py-2 bg-card border border-border text-foreground rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t.taskForm.cancelButton}
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting
+                  ? t.taskForm.saving
+                  : task
+                  ? t.taskForm.saveButton
+                  : t.taskForm.createButton}
+              </button>
+            </div>
+          </Form>
+        );
+      }}
+    </Formik>
   );
 }
-

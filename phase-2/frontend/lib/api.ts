@@ -36,7 +36,8 @@ class TodoApiService {
     }
 
     const data = await response.json();
-    return data.tasks || [];
+    // Backend returns {"tasks": [...]} for GET /api/tasks
+    return Array.isArray(data) ? data : (data.tasks || []);
   }
 
   async createTask(taskData: TaskCreate): Promise<Task> {
@@ -67,10 +68,12 @@ class TodoApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update task: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Failed to update task: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return data;
   }
 
   async deleteTask(id: number): Promise<any> {
@@ -93,14 +96,18 @@ class TodoApiService {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
       },
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to toggle task completion: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Failed to toggle task completion: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    // Backend returns {message: "...", task: {...}}
+    return data.task || data;
   }
 }
 
