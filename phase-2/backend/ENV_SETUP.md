@@ -16,8 +16,7 @@ The backend requires environment variables to be set in a `.env.local` file.
 
 ```bash
 # Neon PostgreSQL Database Connection
-DATABASE_URL=postgresql+asyncpg://neondb_owner:npg_mGEPQ7uNkC3b@ep-sparkling-sun-af6jcybz-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
-
+DATABASE_URL=bhag
 # Better Auth Secret (for JWT token signing/verification)
 # Generate a secure random string for production
 BETTER_AUTH_SECRET=your-secret-key-change-this-in-production
