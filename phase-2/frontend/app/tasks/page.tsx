@@ -7,7 +7,9 @@ import TaskForm from "../components/tasks/TaskForm";
 import Toast from "../components/ui/Toast";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useVoiceCommand } from "../contexts/VoiceCommandContext";
+import { useUserRole } from "../hooks/useUserRole";
 import { uiCopy } from "../content/uiCopy";
+import Link from "next/link";
 import { mockTasks } from "../content/mockTasks";
 import { Task } from "../types/task";
 import { TaskFormValues } from "../lib/validators/taskSchema";
@@ -15,6 +17,7 @@ import { TaskFormValues } from "../lib/validators/taskSchema";
 export default function TasksPage() {
   const { language } = useLanguage();
   const { registerHandlers, unregisterHandlers } = useVoiceCommand();
+  const { isAdmin } = useUserRole();
   const t = uiCopy[language];
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [filter, setFilter] = useState<TaskFilter>("all");
@@ -264,12 +267,22 @@ export default function TasksPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-heading font-bold text-foreground">{t.taskList.title}</h1>
         {!showTaskForm && (
-          <button
-            onClick={() => setShowTaskForm(true)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-colors"
-          >
-            {t.header.addTask}
-          </button>
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <Link
+                href="/roles"
+                className="px-4 py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-colors"
+              >
+                {t.roles.taskManagement}
+              </Link>
+            )}
+            <button
+              onClick={() => setShowTaskForm(true)}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-colors"
+            >
+              {t.header.addTask}
+            </button>
+          </div>
         )}
       </div>
 

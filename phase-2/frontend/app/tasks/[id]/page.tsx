@@ -8,6 +8,7 @@ import CommentForm from "../../components/comments/CommentForm";
 import CommentList from "../../components/comments/CommentList";
 import AttachmentUpload from "../../components/attachments/AttachmentUpload";
 import AttachmentList from "../../components/attachments/AttachmentList";
+import ShareButton from "../../components/sharing/ShareButton";
 import Toast from "../../components/ui/Toast";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuth } from "@/lib/auth";
@@ -15,6 +16,7 @@ import { uiCopy } from "../../content/uiCopy";
 import { Task, TaskHistoryEntry } from "../../types/task";
 import { Comment, CommentFormValues } from "../../types/comment";
 import { Attachment, AttachmentFormValues } from "../../types/attachment";
+import { ShareLink } from "../../types/sharing";
 import { mockTasks } from "../../content/mockTasks";
 import Link from "next/link";
 
@@ -215,6 +217,34 @@ export default function TaskDetailPage() {
     }
   };
 
+  const handleEmailShare = async (email: string) => {
+    // Mock email share
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setToast({
+      message: t.sharing.emailSent(email),
+      type: "success",
+      isVisible: true,
+    });
+  };
+
+  const handleLinkShare = async (): Promise<ShareLink> => {
+    // Mock link generation
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const shareToken = `share-${task?.id}-${Date.now()}`;
+    const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/tasks/${task?.id}/shared/${shareToken}`;
+    setToast({
+      message: t.sharing.linkGenerated,
+      type: "success",
+      isVisible: true,
+    });
+    return {
+      taskId: task?.id || 0,
+      shareToken,
+      shareUrl,
+      generatedAt: new Date().toISOString(),
+    };
+  };
+
   if (isLoading) {
     return (
       <ProtectedRoute>
@@ -282,6 +312,7 @@ export default function TaskDetailPage() {
               )}
             </div>
             <div className="flex items-center gap-2">
+              <ShareButton task={task} variant="default" onEmailShare={handleEmailShare} onLinkShare={handleLinkShare} />
               {task.priority && (
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-md ${getPriorityColor(

@@ -179,3 +179,4 @@ Implement the core UI for displaying tasks in a list format with individual task
 - Database work
 - Authentication integration
 
+

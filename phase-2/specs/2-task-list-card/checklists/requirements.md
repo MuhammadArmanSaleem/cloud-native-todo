@@ -37,3 +37,4 @@
 - Scope clearly excludes API integration, forms, and advanced features
 - Mock data assumption is documented
 
+

@@ -3,12 +3,15 @@
 import { useState } from "react";
 import ProfileForm from "./ProfileForm";
 import EmailNotificationSettings from "../notifications/EmailNotificationSettings";
+import RoleBadge from "../roles/RoleBadge";
 import { useAuth } from "@/lib/auth";
+import { useUserRole } from "../../hooks/useUserRole";
 import { ProfileFormValues } from "../../lib/validators/profileSchema";
 import Toast from "../ui/Toast";
 
 export default function ProfilePage() {
   const { session } = useAuth();
+  const { userRole } = useUserRole();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{
@@ -71,9 +74,12 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-heading font-bold text-foreground mb-2">
-          Profile Settings
-        </h1>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-2xl font-heading font-bold text-foreground">
+            Profile Settings
+          </h1>
+          <RoleBadge role={userRole} />
+        </div>
         <p className="text-sm text-muted-foreground">
           Manage your account information and preferences
         </p>

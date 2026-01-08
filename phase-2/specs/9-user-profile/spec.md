@@ -234,3 +234,4 @@ Implement user profile page that allows authenticated users to view and update t
 - Password strength meter (beyond minimum length)
 - Profile export functionality
 
+

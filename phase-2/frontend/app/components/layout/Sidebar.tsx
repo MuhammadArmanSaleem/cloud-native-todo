@@ -2,15 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navigationItems } from "../../content/navigation";
+import { navigationItems, adminNavigationItems } from "../../content/navigation";
+import { useUserRole } from "../../hooks/useUserRole";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { isAdmin } = useUserRole();
+
+  const allNavItems = isAdmin 
+    ? [...navigationItems, ...adminNavigationItems]
+    : navigationItems;
 
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card h-screen sticky top-0">
       <nav className="flex flex-col gap-2 p-4">
-        {navigationItems.map((item) => {
+        {allNavItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href);
           
           return (
@@ -31,4 +37,5 @@ export default function Sidebar() {
     </aside>
   );
 }
+
 

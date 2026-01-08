@@ -38,3 +38,4 @@
 - Better Auth integration and JWT token management are specified
 - Protected routes and authentication state management are clearly defined
 
+

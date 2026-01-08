@@ -19,3 +19,11 @@ export const navigationItems: NavigationItem[] = [
   },
 ];
 
+// Admin-only navigation items
+export const adminNavigationItems: NavigationItem[] = [
+  {
+    label: "User Roles",
+    href: "/roles",
+  },
+];
+

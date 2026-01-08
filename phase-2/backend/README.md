@@ -13,7 +13,7 @@
 
 2. **Create `.env.local` file** with your database connection string:
    ```bash
-   DATABASE_URL=postgresql+asyncpg://neondb_owner:npg_mGEPQ7uNkC3b@ep-sparkling-sun-af6jcybz-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
+   DATABASE_URL=bhag
    BETTER_AUTH_SECRET=your-secret-key-change-this-in-production
    ```
 

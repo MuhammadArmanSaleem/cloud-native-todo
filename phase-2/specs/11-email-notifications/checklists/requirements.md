@@ -38,3 +38,4 @@
 - Notification bell icon and settings tooltip/modal are specified
 - localStorage persistence is documented
 
+

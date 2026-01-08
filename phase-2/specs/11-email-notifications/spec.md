@@ -205,3 +205,4 @@ Implement email notification settings user interface that allows users to config
 - Email service integration (SendGrid, Mailgun, etc.)
 - Notification preferences for other event types beyond completion and due date
 
+

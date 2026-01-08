@@ -4,6 +4,7 @@ import { Task } from "../../types/task";
 import { useState } from "react";
 import Link from "next/link";
 import ConfirmDeleteDialog from "../task/ConfirmDeleteDialog";
+import ShareButton from "../sharing/ShareButton";
 
 interface TaskCardProps {
   task: Task;
@@ -182,6 +183,7 @@ export default function TaskCard({
 
         {/* Actions */}
         <div className="flex items-start gap-2">
+          <ShareButton task={task} variant="icon" />
           {canDelete && (
             <button
               type="button"

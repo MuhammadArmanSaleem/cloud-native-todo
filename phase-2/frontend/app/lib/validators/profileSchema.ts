@@ -21,3 +21,4 @@ export const profileSchema = yup.object({
 
 export type ProfileFormValues = yup.InferType<typeof profileSchema>;
 
+

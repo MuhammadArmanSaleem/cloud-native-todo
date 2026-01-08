@@ -5,10 +5,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { useUserRole } from "../../hooks/useUserRole";
 import { uiCopy } from "../../content/uiCopy";
 import LanguageSwitcher from "../ui/LanguageSwitcher";
 import VoiceCommand from "../task/VoiceCommand";
 import NotificationBell from "../notifications/NotificationBell";
+import RoleBadge from "../roles/RoleBadge";
 
 interface HeaderProps {
   onAddTaskClick?: () => void;
@@ -18,6 +20,7 @@ export default function Header({ onAddTaskClick }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { language } = useLanguage();
   const { isAuthenticated, signOut, session } = useAuth();
+  const { userRole } = useUserRole();
   const router = useRouter();
   const t = uiCopy[language];
 
@@ -75,9 +78,10 @@ export default function Header({ onAddTaskClick }: HeaderProps) {
             <div className="flex items-center gap-2">
               <Link
                 href="/profile"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
               >
-                {session?.user?.name || session?.user?.email || "User"}
+                <span>{session?.user?.name || session?.user?.email || "User"}</span>
+                <RoleBadge role={userRole} size="sm" />
               </Link>
               <button
                 onClick={handleSignOut}

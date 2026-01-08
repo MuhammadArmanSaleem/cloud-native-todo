@@ -38,3 +38,4 @@
 - Profile update logic and useProfile hook are specified
 - Protected route requirement is clear
 
+

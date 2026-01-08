@@ -38,3 +38,4 @@
 - Confirmation dialog and ownership checks are clearly specified
 - Visual feedback requirements are defined
 
+

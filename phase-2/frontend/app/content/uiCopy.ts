@@ -114,6 +114,47 @@ export interface Translations {
     loading: string;
     emptyState: string;
   };
+  // Sharing
+  sharing: {
+    share: string;
+    shareTask: string;
+    title: string;
+    close: string;
+    sharingTask: string;
+    selectMethod: string;
+    link: string;
+    email: string;
+    shareLink: string;
+    copy: string;
+    copied: string;
+    generateLink: string;
+    generatingLink: string;
+    recipientEmail: string;
+    emailPlaceholder: string;
+    sendEmail: string;
+    sending: string;
+    emailSent: (email: string) => string;
+    linkGenerated: string;
+  };
+  // Roles
+  roles: {
+    title: string;
+    description: string;
+    userName: string;
+    email: string;
+    currentRole: string;
+    changeRole: string;
+    selectRole: string;
+    admin: string;
+    user: string;
+    roleLabel: (role: string) => string;
+    taskManagement: string;
+    roleUpdated: (name: string, role: string) => string;
+    updateError: string;
+    loading: string;
+    emptyState: string;
+    accessDenied: string;
+  };
 }
 
 export const uiCopy: Record<Language, Translations> = {
@@ -218,6 +259,27 @@ export const uiCopy: Record<Language, Translations> = {
       loading: "Loading attachments...",
       emptyState: "No attachments yet. Upload files to attach them to this task.",
     },
+    sharing: {
+      share: "Share",
+      shareTask: "Share Task",
+      title: "Share Task",
+      close: "Close",
+      sharingTask: "Sharing task",
+      selectMethod: "Select sharing method",
+      link: "Link",
+      email: "Email",
+      shareLink: "Share Link",
+      copy: "Copy",
+      copied: "Copied!",
+      generateLink: "Generate Link",
+      generatingLink: "Generating link...",
+      recipientEmail: "Recipient Email",
+      emailPlaceholder: "Enter email address",
+      sendEmail: "Send Email",
+      sending: "Sending...",
+      emailSent: (email: string) => `Task shared via email to ${email}`,
+      linkGenerated: "Share link generated successfully",
+    },
   },
   ur: {
     header: {
@@ -319,6 +381,45 @@ export const uiCopy: Record<Language, Translations> = {
       downloadError: "فائل ڈاؤن لوڈ کرنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔",
       loading: "منسلکات لوڈ ہو رہے ہیں...",
       emptyState: "ابھی تک کوئی منسلکات نہیں۔ فائلیں اپ لوڈ کریں تاکہ انہیں اس کام سے منسلک کیا جا سکے۔",
+    },
+    sharing: {
+      share: "شیئر کریں",
+      shareTask: "کام شیئر کریں",
+      title: "کام شیئر کریں",
+      close: "بند کریں",
+      sharingTask: "کام شیئر کر رہے ہیں",
+      selectMethod: "شیئرنگ کا طریقہ منتخب کریں",
+      link: "لنک",
+      email: "ای میل",
+      shareLink: "شیئر لنک",
+      copy: "کاپی کریں",
+      copied: "کاپی ہو گیا!",
+      generateLink: "لنک بنائیں",
+      generatingLink: "لنک بنایا جا رہا ہے...",
+      recipientEmail: "وصول کنندہ ای میل",
+      emailPlaceholder: "ای میل ایڈریس درج کریں",
+      sendEmail: "ای میل بھیجیں",
+      sending: "بھیجا جا رہا ہے...",
+      emailSent: (email: string) => `کام ${email} پر ای میل کے ذریعے شیئر کیا گیا`,
+      linkGenerated: "شیئر لنک کامیابی سے بنایا گیا",
+    },
+    roles: {
+      title: "صارف کردار",
+      description: "صارف کردار اور اجازتیں منظم کریں۔ منتظمین صارفین کو کردار تفویض کر سکتے ہیں۔",
+      userName: "صارف کا نام",
+      email: "ای میل",
+      currentRole: "موجودہ کردار",
+      changeRole: "کردار تبدیل کریں",
+      selectRole: "کردار منتخب کریں",
+      admin: "منتظم",
+      user: "صارف",
+      roleLabel: (role: string) => `صارف کردار: ${role}`,
+      taskManagement: "کام کی انتظامیہ",
+      roleUpdated: (name: string, role: string) => `${name} کا کردار ${role} میں تبدیل کر دیا گیا`,
+      updateError: "کردار اپ ڈیٹ کرنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔",
+      loading: "کردار لوڈ ہو رہے ہیں...",
+      emptyState: "کوئی صارف نہیں ملا۔",
+      accessDenied: "رسائی مسترد۔ منتظم کی اجازت درکار ہے۔",
     },
   },
 };
