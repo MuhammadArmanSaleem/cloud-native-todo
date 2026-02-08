@@ -1,0 +1,19 @@
+# Phase V – Local Kafka (Redpanda) for event-driven todo
+# Usage: docker compose -f deploy/redpanda/docker-compose.redpanda.yml up -d
+# Create topics: task-events, reminders (e.g. with rpk or Kafka CLI)
+
+services:
+  redpanda:
+    image: redpandadata/redpanda:latest
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 512M
+      - --overprovisioned
+      - --kafka-addr PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://localhost:9092
+    ports:
+      - "9092:9092"
+      - "8081:8081"
+      - "8082:8082"

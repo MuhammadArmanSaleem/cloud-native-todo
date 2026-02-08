@@ -1,0 +1,30 @@
+# Phase V – Dapr Pub/Sub component (Kafka/Redpanda)
+# Apply to namespace where backend runs: kubectl apply -f deploy/dapr/components/ -n <namespace>
+# For Redpanda Cloud: set brokers and auth in metadata (see Dapr docs)
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "localhost:9092"
+    - name: consumerGroup
+      value: "todo-backend"
+# Redpanda Cloud example (replace with your cluster):
+#   metadata:
+#     - name: brokers
+#       value: "YOUR-CLUSTER.cloud.redpanda.com:9092"
+#     - name: authType
+#       value: "sasl"
+#     - name: saslUsername
+#       secretKeyRef:
+#         name: redpanda-secret
+#         key: username
+#     - name: saslPassword
+#       secretKeyRef:
+#         name: redpanda-secret
+#         key: password
