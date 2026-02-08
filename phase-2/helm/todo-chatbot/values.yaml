@@ -1,0 +1,32 @@
+# Phase IV – Todo Chatbot Helm values
+# Override these or pass via --set when using external DB and secrets
+
+backend:
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 8001
+    nodePort: null  # set 30081 for NodePort
+  env:
+    API_URL: "http://localhost:8001"
+    OPENROUTER_MODEL: ""
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 3000
+    nodePort: null  # set 30080 for NodePort
+
+# Backend secrets – provide via --set or values file (do not commit real values)
+# For Minikube you can: helm install todo ./helm/todo-chatbot --set secret.databaseUrl="..." --set secret.betterAuthSecret="..." --set secret.openrouterApiKey="..."
+secret:
+  databaseUrl: ""
+  betterAuthSecret: ""
+  openrouterApiKey: ""

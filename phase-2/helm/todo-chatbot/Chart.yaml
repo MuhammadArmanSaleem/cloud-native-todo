@@ -1,0 +1,11 @@
+apiVersion: v2
+name: todo-chatbot
+description: Phase IV – Todo Chatbot (backend + frontend) for Minikube
+type: application
+version: 0.1.0
+appVersion: "1.0"
+keywords:
+  - todo
+  - chatbot
+  - minikube
+maintainers: []

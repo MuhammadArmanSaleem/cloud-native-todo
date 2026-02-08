@@ -1,0 +1,31 @@
+# Example values for Minikube (NodePort for browser access)
+# Usage: helm install todo ./helm/todo-chatbot -f helm/todo-chatbot/values.minikube.yaml \
+#   --set secret.databaseUrl="..." --set secret.betterAuthSecret="..." --set secret.openrouterApiKey="..."
+
+backend:
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 8001
+    nodePort: 30081
+  env:
+    API_URL: "http://localhost:30081"
+    OPENROUTER_MODEL: ""
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 3000
+    nodePort: 30080
+
+secret:
+  databaseUrl: ""   # set via --set
+  betterAuthSecret: ""
+  openrouterApiKey: ""

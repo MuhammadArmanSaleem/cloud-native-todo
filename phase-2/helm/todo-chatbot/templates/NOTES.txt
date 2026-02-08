@@ -1,0 +1,10 @@
+Todo Chatbot (Phase IV) is installed.
+
+Backend:  {{ .Release.Name }}-backend (port {{ .Values.backend.service.port }})
+Frontend: {{ .Release.Name }}-frontend (port {{ .Values.frontend.service.port }})
+
+Access (Minikube):
+  minikube service {{ .Release.Name }}-frontend
+  minikube service {{ .Release.Name }}-backend
+
+Or use NodePort in values and open http://<minikube-ip>:<nodePort>
