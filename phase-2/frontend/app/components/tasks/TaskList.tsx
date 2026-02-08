@@ -12,6 +12,7 @@ interface TaskListProps {
   filter?: TaskFilter;
   isLoading?: boolean;
   onToggleComplete: (id: number) => void;
+  onEdit?: (task: Task) => void;
   onDelete?: (id: number) => void;
   currentUserId?: string;
 }
@@ -21,6 +22,7 @@ export default function TaskList({
   filter = "all",
   isLoading = false,
   onToggleComplete,
+  onEdit,
   onDelete,
   currentUserId,
 }: TaskListProps) {
@@ -50,6 +52,7 @@ export default function TaskList({
           key={task.id}
           task={task}
           onToggleComplete={onToggleComplete}
+          onEdit={onEdit}
           onDelete={onDelete}
           currentUserId={currentUserId}
         />

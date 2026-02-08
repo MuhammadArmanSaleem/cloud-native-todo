@@ -4,6 +4,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Task } from "../../types/task";
 import { taskFormSchema, TaskFormValues } from "../../lib/validators/taskSchema";
 import { useState } from "react";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { uiCopy } from "../../content/uiCopy";
 import DueDatePicker from "../task/DueDatePicker";
 import RecurringTaskSelector from "../task/RecurringTaskSelector";
 
@@ -47,10 +49,10 @@ export default function TaskForm({
   };
 
   const initialValues: TaskFormValues = {
-    title: task?.title || "",
-    description: task?.description || null,
-    priority: task?.priority || null,
-    tags: task?.tags || [],
+    title: task?.title ?? "",
+    description: task?.description ?? "",
+    priority: task?.priority ?? null,
+    tags: task?.tags ?? [],
     due_date: getInitialDueDate(),
     recurring_pattern: getInitialRecurringPattern(),
   };

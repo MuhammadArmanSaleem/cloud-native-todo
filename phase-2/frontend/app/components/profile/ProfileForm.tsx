@@ -26,9 +26,9 @@ export default function ProfileForm({
   const t = uiCopy[language];
 
   const formInitialValues: ProfileFormValues = {
-    name: initialValues.name || "",
-    email: initialValues.email || "",
-    password: null,
+    name: initialValues.name ?? "",
+    email: initialValues.email ?? "",
+    password: "",
   };
 
   return (

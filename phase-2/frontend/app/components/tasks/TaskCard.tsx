@@ -9,6 +9,7 @@ import ShareButton from "../sharing/ShareButton";
 interface TaskCardProps {
   task: Task;
   onToggleComplete: (id: number) => void;
+  onEdit?: (task: Task) => void;
   onDelete?: (id: number) => void;
   currentUserId?: string;
 }
@@ -16,13 +17,14 @@ interface TaskCardProps {
 export default function TaskCard({
   task,
   onToggleComplete,
+  onEdit,
   onDelete,
   currentUserId,
 }: TaskCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Check if current user owns this task and delete handler is provided
+  const canEdit = onEdit && (!currentUserId || task.user_id === currentUserId);
   const canDelete = onDelete && (!currentUserId || task.user_id === currentUserId);
 
   const handleDeleteClick = () => {
@@ -184,6 +186,18 @@ export default function TaskCard({
         {/* Actions */}
         <div className="flex items-start gap-2">
           <ShareButton task={task} variant="icon" />
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => onEdit?.(task)}
+              className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+              aria-label={`Edit task "${task.title}"`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+          )}
           {canDelete && (
             <button
               type="button"
