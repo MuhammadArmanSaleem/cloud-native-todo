@@ -13,3 +13,4 @@ export interface EmailShare {
 
 export type ShareMethod = 'email' | 'link';
 
+

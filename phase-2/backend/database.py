@@ -2,7 +2,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlmodel.ext.asyncio.session import AsyncSession as SQLModelAsyncSession
 import os
-from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from dotenv import load_dotenv
 
@@ -53,7 +52,7 @@ AsyncSessionLocal = sessionmaker(
     expire_on_commit=False
 )
 
-@asynccontextmanager
 async def get_async_session() -> AsyncGenerator[SQLModelAsyncSession, None]:
+    """Async generator for FastAPI Depends(); do not use @asynccontextmanager."""
     async with AsyncSessionLocal() as session:
         yield session

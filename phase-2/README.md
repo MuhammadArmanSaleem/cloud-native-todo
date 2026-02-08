@@ -39,6 +39,14 @@ Transform the Phase I console app into a modern multi-user web application with 
 - [ ] Multi-language Support – Support Urdu in chatbot (+100)
 - [ ] Voice Commands – Add voice input for todo commands (+100)
 
+## Frontend–Backend Wiring
+
+- **Backend only: FastAPI** (port 8000). There are **no Next.js API routes** (`app/api/` does not exist). Next.js is the React frontend only; it does not run a Node backend.
+- **Auth**: Better Auth client (`lib/auth.ts`) and **task API client** (`lib/api.ts`) both use `NEXT_PUBLIC_API_URL` / `NEXT_PUBLIC_BETTER_AUTH_URL` (default `http://localhost:8000`) and call FastAPI.
+- **Task data**: The tasks list page still uses **mock data** (`mockTasks`). The `todoApi` in `lib/api.ts` is wired to FastAPI and ready; to use real data, the tasks page should call `todoApi` and set the session token on it after login.
+
+**If the frontend is blank or shows 404 for `/api/auth/get-session`:** Restart the FastAPI backend (Ctrl+C, then `uv run python main.py` from `backend/`) so it loads the auth routes. The frontend will then get 200 from get-session and show the login page.
+
 ## Project Structure
 
 ```

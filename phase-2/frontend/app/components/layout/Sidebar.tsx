@@ -21,7 +21,7 @@ export default function Sidebar() {
           
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className={`px-4 py-2 rounded-md transition-colors ${
                 isActive

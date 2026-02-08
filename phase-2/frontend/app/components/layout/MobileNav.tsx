@@ -58,7 +58,7 @@ export default function MobileNav() {
                 
                 return (
                   <Link
-                    key={item.href}
+                    key={item.label}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className={`block px-4 py-3 rounded-md transition-colors ${
@@ -78,5 +78,6 @@ export default function MobileNav() {
     </>
   );
 }
+
 
 

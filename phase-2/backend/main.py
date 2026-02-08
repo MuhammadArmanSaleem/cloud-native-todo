@@ -1,11 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from typing import Optional, List, AsyncGenerator
 import os
+import uuid
 from sqlmodel import SQLModel, Field, select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from datetime import datetime
+from datetime import datetime, timedelta
 from pydantic import BaseModel
 import better_exceptions
 from dotenv import load_dotenv
@@ -47,15 +49,23 @@ class TaskResponse(TaskBase):
 
 # Import database session and auth
 from database import get_async_session, AsyncSessionLocal
-from auth import get_current_user, TokenData
-from models import Task as TaskModel
+from auth import get_current_user, get_current_user_optional, TokenData, create_access_token
+from models import Task as TaskModel, User as UserModel
 
 # Lifespan to handle startup and shutdown events
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Create database tables on startup
-    async with async_engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+    try:
+        async with async_engine.begin() as conn:
+            await conn.run_sync(SQLModel.metadata.create_all)
+        print("✅ Database connection successful and tables created/verified")
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        print("⚠️  Please check your DATABASE_URL in .env.local file")
+        print("⚠️  The server will start but database operations will fail")
+        # Don't raise - allow server to start for health checks
+        # This allows the API to be tested even if database is not configured
     yield
     # Cleanup on shutdown if needed
 
@@ -67,10 +77,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
+# Add CORS middleware (must list origins when allow_credentials=True; * is not allowed with credentials)
+CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, configure specific origins
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -80,6 +94,127 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+# Better Auth–compatible endpoints (so frontend Better Auth client gets 200)
+class SignInBody(BaseModel):
+    email: str
+    password: str
+
+
+class SignUpBody(BaseModel):
+    email: str
+    password: str
+    name: Optional[str] = None
+
+
+def _token_from_request(request: Request) -> Optional[str]:
+    auth = request.headers.get("Authorization")
+    if auth and auth.startswith("Bearer "):
+        return auth[7:]
+    cookie = request.cookies.get("better-auth.session_token")
+    if cookie:
+        return cookie
+    return None
+
+
+@app.get("/api/auth/get-session")
+async def get_session(
+    request: Request,
+    current_user: Optional[TokenData] = Depends(get_current_user_optional),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Return current session for Better Auth client; 200 with null if unauthenticated."""
+    token = _token_from_request(request)
+    if not token and not current_user:
+        return None
+    if not current_user and token:
+        try:
+            import jwt
+            from auth import SECRET_KEY, ALGORITHM
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            if user_id:
+                current_user = TokenData(user_id=user_id, email=payload.get("email"))
+        except Exception:
+            return None
+    if not current_user:
+        return None
+    result = await session.execute(
+        select(UserModel).where(UserModel.id == current_user.user_id)
+    )
+    user = result.scalar_one_or_none()
+    if not user:
+        return None
+    return {
+        "user": {"id": user.id, "email": user.email, "name": user.name},
+        "session": {"token": token or create_access_token({"sub": user.id, "email": user.email}, timedelta(days=7))},
+    }
+
+
+SESSION_COOKIE = "better-auth.session_token"
+SESSION_AGE_DAYS = 7
+
+def _auth_response(user: dict, token: str):
+    """JSON response with session cookie so browser sends it on get-session."""
+    resp = JSONResponse(content={
+        "user": user,
+        "session": {"token": token},
+    })
+    resp.set_cookie(
+        key=SESSION_COOKIE,
+        value=token,
+        max_age=86400 * SESSION_AGE_DAYS,
+        path="/",
+        httponly=True,
+        samesite="lax",
+    )
+    return resp
+
+
+@app.post("/api/auth/sign-in/email")
+async def sign_in_email(
+    body: SignInBody,
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Sign in by email; returns user + session token and sets session cookie."""
+    result = await session.execute(select(UserModel).where(UserModel.email == body.email))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    token = create_access_token({"sub": user.id, "email": user.email}, timedelta(days=SESSION_AGE_DAYS))
+    return _auth_response(
+        {"id": user.id, "email": user.email, "name": user.name},
+        token,
+    )
+
+
+@app.post("/api/auth/sign-up/email")
+async def sign_up_email(
+    body: SignUpBody,
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Sign up by email; creates user and returns session + session cookie."""
+    result = await session.execute(select(UserModel).where(UserModel.email == body.email))
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    user = UserModel(id=str(uuid.uuid4()), email=body.email, name=body.name or None)
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    token = create_access_token({"sub": user.id, "email": user.email}, timedelta(days=SESSION_AGE_DAYS))
+    return _auth_response(
+        {"id": user.id, "email": user.email, "name": user.name},
+        token,
+    )
+
+
+@app.post("/api/auth/sign-out")
+async def sign_out():
+    """Sign out; clear session cookie and return 200."""
+    resp = JSONResponse(content={})
+    resp.delete_cookie(SESSION_COOKIE, path="/")
+    return resp
 
 # Task endpoints
 @app.get("/api/tasks")

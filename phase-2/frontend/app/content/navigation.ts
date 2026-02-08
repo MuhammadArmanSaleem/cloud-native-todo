@@ -15,7 +15,7 @@ export const navigationItems: NavigationItem[] = [
   },
   {
     label: "Settings",
-    href: "/settings",
+    href: "/profile",
   },
 ];
 

@@ -11,6 +11,7 @@ load_dotenv()
 
 # Security scheme for JWT
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 # Secret key for JWT
 SECRET_KEY = os.getenv("BETTER_AUTH_SECRET", "fallback_secret_key_for_development")
@@ -54,3 +55,21 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise credentials_exception
 
     return token_data
+
+
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
+) -> Optional[TokenData]:
+    """Return TokenData if valid Bearer token present, else None (no 401)."""
+    if not credentials:
+        return None
+    try:
+        payload = jwt.decode(
+            credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM]
+        )
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+        return TokenData(user_id=user_id, email=payload.get("email"))
+    except jwt.PyJWTError:
+        return None
