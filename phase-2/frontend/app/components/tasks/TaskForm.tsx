@@ -189,7 +189,7 @@ export default function TaskForm({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      handleAddTag(values.tags || [], setFieldValue);
+                      handleAddTag((values.tags || []).filter((t): t is string => typeof t === "string"), setFieldValue);
                     }
                   }}
                   placeholder={t.taskForm.addTagPlaceholder}
@@ -197,7 +197,7 @@ export default function TaskForm({
                 />
                 <button
                   type="button"
-                  onClick={() => handleAddTag(values.tags || [], setFieldValue)}
+                  onClick={() => handleAddTag((values.tags || []).filter((t): t is string => typeof t === "string"), setFieldValue)}
                   className="px-4 py-2 bg-muted text-muted-foreground rounded-md hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-colors"
                 >
                   Add
@@ -205,7 +205,7 @@ export default function TaskForm({
               </div>
               {values.tags && values.tags.length > 0 && (
                 <div className="flex gap-2 flex-wrap">
-                  {values.tags.map((tag) => (
+                  {(values.tags || []).filter((t): t is string => typeof t === "string").map((tag) => (
                     <span
                       key={tag}
                       className="inline-flex items-center gap-1 px-2 py-1 bg-muted text-muted-foreground text-sm rounded"
@@ -214,7 +214,7 @@ export default function TaskForm({
                       <button
                         type="button"
                         onClick={() =>
-                          handleRemoveTag(tag, values.tags || [], setFieldValue)
+                          handleRemoveTag(tag, (values.tags || []).filter((t): t is string => typeof t === "string"), setFieldValue)
                         }
                         className="text-muted-foreground hover:text-foreground focus:outline-none"
                         aria-label={`Remove tag ${tag}`}

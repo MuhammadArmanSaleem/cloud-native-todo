@@ -7,6 +7,7 @@ import os
 import uuid
 from sqlmodel import SQLModel, Field, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy import func
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 import better_exceptions
@@ -50,7 +51,8 @@ class TaskResponse(TaskBase):
 # Import database session and auth
 from database import get_async_session, AsyncSessionLocal
 from auth import get_current_user, get_current_user_optional, TokenData, create_access_token
-from models import Task as TaskModel, User as UserModel
+from models import Task as TaskModel, User as UserModel, ChatThread, ChatMessage
+from chat.router import router as chat_router
 
 # Lifespan to handle startup and shutdown events
 @asynccontextmanager
@@ -81,6 +83,8 @@ app = FastAPI(
 CORS_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -89,6 +93,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(chat_router)
 
 # Health check endpoint
 @app.get("/health")
@@ -155,6 +161,12 @@ async def get_session(
 SESSION_COOKIE = "better-auth.session_token"
 SESSION_AGE_DAYS = 7
 
+
+def _normalize_email(email: str) -> str:
+    """Strip and lowercase so sign-in matches sign-up regardless of case/spaces."""
+    return (email or "").strip().lower()
+
+
 def _auth_response(user: dict, token: str):
     """JSON response with session cookie so browser sends it on get-session."""
     resp = JSONResponse(content={
@@ -178,7 +190,12 @@ async def sign_in_email(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Sign in by email; returns user + session token and sets session cookie."""
-    result = await session.execute(select(UserModel).where(UserModel.email == body.email))
+    email = _normalize_email(body.email)
+    if not email:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    result = await session.execute(
+        select(UserModel).where(func.lower(UserModel.email) == email)
+    )
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
@@ -195,10 +212,15 @@ async def sign_up_email(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Sign up by email; creates user and returns session + session cookie."""
-    result = await session.execute(select(UserModel).where(UserModel.email == body.email))
+    email = _normalize_email(body.email)
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email is required")
+    result = await session.execute(
+        select(UserModel).where(func.lower(UserModel.email) == email)
+    )
     if result.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    user = UserModel(id=str(uuid.uuid4()), email=body.email, name=body.name or None)
+    user = UserModel(id=str(uuid.uuid4()), email=email, name=(body.name or "").strip() or None)
     session.add(user)
     await session.commit()
     await session.refresh(user)

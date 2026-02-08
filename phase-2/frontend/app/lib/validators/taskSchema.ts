@@ -45,7 +45,7 @@ export const taskFormSchema = yup.object({
     .transform((value) => (value === "" ? null : value)),
   priority: yup
     .string()
-    .oneOf(["low", "medium", "high", null], "Priority must be low, medium, or high")
+    .oneOf(["low", "medium", "high"], "Priority must be low, medium, or high")
     .nullable()
     .transform((value) => (value === "" ? null : value)),
   tags: yup

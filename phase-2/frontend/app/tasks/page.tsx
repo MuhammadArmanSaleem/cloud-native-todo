@@ -11,7 +11,7 @@ import { useUserRole } from "../hooks/useUserRole";
 import { useAuth } from "@/lib/auth";
 import { uiCopy } from "../content/uiCopy";
 import Link from "next/link";
-import { Task } from "../types/task";
+import { Task, TaskCreate } from "../types/task";
 import { TaskFormValues } from "../lib/validators/taskSchema";
 import { todoApi } from "@/lib/api";
 
@@ -81,13 +81,16 @@ export default function TasksPage() {
   const handleTaskSubmit = async (values: TaskFormValues) => {
     setIsSubmitting(true);
     try {
-      const payload = {
+      const recurring = values.recurring_pattern;
+      const recurring_pattern: TaskCreate["recurring_pattern"] =
+        recurring === "daily" || recurring === "weekly" || recurring === "monthly" ? recurring : undefined;
+      const payload: TaskCreate = {
         title: values.title,
         description: values.description || undefined,
         priority: values.priority || undefined,
-        tags: values.tags ?? [],
+        tags: (values.tags ?? []).filter((t): t is string => typeof t === "string"),
         due_date: values.due_date || undefined,
-        recurring_pattern: (typeof values.recurring_pattern === "string" ? values.recurring_pattern : null) || undefined,
+        recurring_pattern,
       };
       if (editingTask) {
         const updated = await todoApi.updateTask(editingTask.id, payload);

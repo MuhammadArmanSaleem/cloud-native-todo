@@ -6,7 +6,7 @@ class TodoApiService {
   private token: string | null;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
     this.token = null;
   }
 

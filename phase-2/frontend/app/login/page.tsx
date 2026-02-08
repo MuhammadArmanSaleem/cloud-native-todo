@@ -9,7 +9,7 @@ import { LoginFormValues } from "../lib/validators/authSchema";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { signIn, isAuthenticated, isLoading: authLoading, sessionError } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,8 +47,9 @@ export default function LoginPage() {
         return;
       }
 
-      // Success - redirect to tasks page
-      router.push("/tasks");
+      // Full page nav so cookie is sent and session is available on /tasks
+      window.location.href = "/tasks";
+      return;
     } catch (err: any) {
       setError(err.message || "An error occurred. Please try again.");
     } finally {
@@ -66,6 +67,12 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground mb-6">
             Enter your credentials to access your tasks
           </p>
+
+          {sessionError && (
+            <div className="mb-4 p-3 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm">
+              {sessionError}
+            </div>
+          )}
 
           <LoginForm onSubmit={handleSubmit} isLoading={isLoading} error={error} />
 

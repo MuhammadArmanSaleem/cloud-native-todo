@@ -2,6 +2,26 @@
 
 Complete step-by-step guide to start the Phase 2 FastAPI backend.
 
+### If you see `ModuleNotFoundError: No module named 'sqlmodel'`
+
+Dependencies are not installed in your environment. Do one of the following:
+
+1. **Using uv (recommended):** From `phase-2/backend` run:
+   ```bash
+   uv sync
+   ```
+   Then start the server with:
+   ```bash
+   uv run uvicorn main:app --reload --port 8000 --host 0.0.0.0
+   ```
+   (You do **not** need to activate `.venv` when using `uv run`.)
+
+2. **Using pip:** Create and activate a venv, then run:
+   ```bash
+   pip install -r requirements.txt
+   uvicorn main:app --reload --port 8000
+   ```
+
 ## Prerequisites
 
 Before starting, ensure you have:
@@ -119,13 +139,15 @@ If you get an error, check:
 ### Using uv (Recommended)
 
 ```bash
-uv run uvicorn main:app --reload --port 8000
+uv run uvicorn main:app --reload --port 8000 --host 0.0.0.0
 ```
+
+`--host 0.0.0.0` lets the browser (e.g. from frontend on port 3000) reach the API.
 
 ### Using pip (with venv activated)
 
 ```bash
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8000 --host 0.0.0.0
 ```
 
 ### What to Expect

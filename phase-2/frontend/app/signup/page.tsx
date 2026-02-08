@@ -48,8 +48,9 @@ export default function SignupPage() {
         return;
       }
 
-      // Success - redirect to tasks page
-      router.push("/tasks");
+      // Full page nav so session is available on /tasks
+      window.location.href = "/tasks";
+      return;
     } catch (err: any) {
       setError(err.message || "An error occurred. Please try again.");
     } finally {

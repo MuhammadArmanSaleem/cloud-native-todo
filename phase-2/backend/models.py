@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field, Column, ARRAY, Text
 from typing import Optional, List
 from datetime import datetime
+import uuid
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
@@ -27,3 +28,23 @@ class Task(SQLModel, table=True):
     original_task_id: Optional[int] = Field(default=None, foreign_key="tasks.id")  # For recurring tasks
     created_at: datetime = Field(default_factory=datetime.now, index=True)
     updated_at: datetime = Field(default_factory=datetime.now)
+
+
+class ChatThread(SQLModel, table=True):
+    __tablename__ = "chat_threads"
+
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str = Field(index=True, foreign_key="users.id")
+    title: Optional[str] = Field(default=None, max_length=500)
+    created_at: datetime = Field(default_factory=datetime.now, index=True)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+
+class ChatMessage(SQLModel, table=True):
+    __tablename__ = "chat_messages"
+
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    thread_id: str = Field(index=True, foreign_key="chat_threads.id")
+    role: str = Field(index=True)  # "user" | "assistant" | "system"
+    content: str = Field(sa_column=Column(Text))
+    created_at: datetime = Field(default_factory=datetime.now, index=True)

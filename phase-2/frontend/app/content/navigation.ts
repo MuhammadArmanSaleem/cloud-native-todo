@@ -10,6 +10,10 @@ export const navigationItems: NavigationItem[] = [
     href: "/tasks",
   },
   {
+    label: "Chat",
+    href: "/chat",
+  },
+  {
     label: "Profile",
     href: "/profile",
   },

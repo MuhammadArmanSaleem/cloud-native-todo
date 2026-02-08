@@ -142,8 +142,9 @@ export default function TaskDetailPage() {
     }
   };
 
-  const handleAttachmentSubmit = async (values: AttachmentFormValues) => {
+  const handleAttachmentSubmit = async (values: { files?: File[] }) => {
     if (!task || !session?.user) return;
+    const files = values.files ?? [];
 
     setIsSubmittingAttachment(true);
     try {
@@ -151,7 +152,7 @@ export default function TaskDetailPage() {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Create new attachments from files
-      const newAttachments: Attachment[] = values.files.map((file, index) => {
+      const newAttachments: Attachment[] = files.map((file, index) => {
         const fileType = file.type.startsWith("image/")
           ? "image"
           : file.type === "application/pdf"

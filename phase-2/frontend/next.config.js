@@ -1,10 +1,15 @@
 /** @type {import('next').NextConfig} */
+const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8001';
 const nextConfig = {
-  experimental: {
-    typedRoutes: false, // Remove or set to false since typedRoutes is not standard
-  },
+  typedRoutes: false,
   images: {
-    domains: ['localhost', '127.0.0.1'],
+    remotePatterns: [
+      { protocol: 'http', hostname: 'localhost', pathname: '/**' },
+      { protocol: 'http', hostname: '127.0.0.1', pathname: '/**' },
+    ],
+  },
+  async rewrites() {
+    return [{ source: '/api/:path*', destination: `${backendUrl}/api/:path*` }];
   },
 };
 
