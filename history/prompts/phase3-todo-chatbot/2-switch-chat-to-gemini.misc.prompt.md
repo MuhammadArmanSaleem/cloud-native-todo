@@ -28,7 +28,7 @@ tests:
 
 ## Prompt
 
-AIzaSyCryxShsTXRMQxOxhr06YZMtSlAXqH0lLs
+
 
 me open ai use nh kr rha gemini key use kr rha hon to code ka syntex gemini wala rakho or is key ko use krna jo di hai
 
